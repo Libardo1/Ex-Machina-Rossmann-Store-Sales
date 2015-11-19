@@ -1,5 +1,6 @@
 ## Load Libraries
 library("caret")
+library("datasets")
 library("mice")
 library("Amelia")
 library("mi")
@@ -12,6 +13,6 @@ if (!require(vcd)) install.packages("vcd")
 if (!require(compare)) install.packages("compare") 
 if (!require(ggplot2)) install.packages("ggplot2") 
 if (!require(corrplot)) install.packages("corrplot") 
-if (!require(RANN)) install.packages("RANN") 
+if (!require(sqldf)) install.packages("sqldf") 
 
 
