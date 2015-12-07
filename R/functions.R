@@ -1,5 +1,9 @@
 ## function.r script
 
+fix_data_types <- function(data_frame) {
+  
+
+}
 
 ## Model that creates RANDOM PREDICTIONS - the WORST MODEL
 create_random_preds_model_v0 <- function(){
@@ -23,7 +27,7 @@ create_random_preds_model_v0 <- function(){
             quote = FALSE)
 }
 
-
+## Simplest Linear Regression model
 create_linreg_preds_model_v1 <- function() {
   
   ##########################
@@ -44,54 +48,70 @@ create_linreg_preds_model_v1 <- function() {
   store_id_date_duple <- test_df$Id
   test_df_mod <- sqldf("SELECT Store, DayOfWeek, Open, Promo, StateHoliday, SchoolHoliday FROM test_df") 
   
-  ## Lets change the data types of these variables in Train DF modeified
-  train_df_mod$Store <- as.factor(train_df_mod$Store)
-  train_df_mod$DayOfWeek <- as.factor(train_df_mod$DayOfWeek)
-  train_df_mod$Open <- as.factor(train_df_mod$Open)
-  train_df_mod$Promo <- as.factor(train_df_mod$Promo)
-  train_df_mod$StateHoliday <- as.factor(train_df_mod$StateHoliday)
-  train_df_mod$SchoolHoliday <- as.factor(train_df_mod$SchoolHoliday)
-  
-  
-  ## Lets change the data types of these variables in Train DF modeified
-  validation_df_mod$Store <- as.factor(validation_df_mod$Store)
-  validation_df_mod$DayOfWeek <- as.factor(validation_df_mod$DayOfWeek)
-  validation_df_mod$Open <- as.factor(validation_df_mod$Open)
-  validation_df_mod$Promo <- as.factor(validation_df_mod$Promo)
-  validation_df_mod$StateHoliday <- as.factor(validation_df_mod$StateHoliday)
-  validation_df_mod$SchoolHoliday <- as.factor(validation_df_mod$SchoolHoliday)
-  
-  
-  test_df_mod$Store <- as.factor(test_df_mod$Store)
-  test_df_mod$DayOfWeek <- as.factor(test_df_mod$DayOfWeek)
-  test_df_mod$Open <- as.factor(test_df_mod$Open)
-  test_df_mod$Promo <- as.factor(test_df_mod$Promo)
-  test_df_mod$StateHoliday <- as.factor(test_df_mod$StateHoliday)
-  test_df_mod$SchoolHoliday <- as.factor(test_df_mod$SchoolHoliday)
-  
-  
-  
   # fitted_lm <- train(Sales ~ ., data = train_df_mod, method = "lm")  >> For some reason this is crashing the R session
   # summary(fitted_lm)
   
   ## Fit a LINEAR MODEL
-  fitted_lm <- lm(Sales ~ ., data = train_df_mod)
+  fitted_lm <- lm(Sales ~ ., 
+                  data = train_df_mod)
   summary(fitted_lm)
 
   ## Now use this to predict
   predicted_sales <- predict(fitted_lm, test_df_mod)
 
+  ## Then write the submission file
+  write_submission_file(1)
+}
+
+## Same model as V1 but with more features extracted from STORES data set
+create_linreg_preds_model_v2 <- function(train_data, test_data) {
+  
+  write("Starting Linear Regression model V2...", stdout())
+  
+  ##########################
+  ## Same as V1 model, but with more features
+  ##########################
+  
+  write("Fitting the model V2...", stdout())
+  fitted_cv_lm <- lm(Sales ~ .,
+                        data = train_data
+                        ## method = "lm"
+                        ## trControl = train_ctrl_params,
+                        ## metric = 'Rsquared'
+                        )
+}
+
+
+run_preds_with_model <- function(model_name) {
+  ## Now use this to predict
+  write("Starting Linear Regression model V2...", stdout())
+  predicted_sales <- predict.train(fitted_cv_lm, test_data)
+}
+
+
+
+## Write the prediction submission file
+write_submission_file <- function(file_version, store_id, predicted_sales) {
   
   ## Create the empty data.frame
   submission_file <- data.frame()
   ## Stick these columns together
-  submission_file <- cbind(store_id_date_duple, predicted_sales)
+  submission_file <- cbind(store_id, predicted_sales)
   colnames(submission_file) <- c("Id", "Sales")
   options("scipen" = 100, 
           "digits" = 8)
   write.csv(x = submission_file, 
-            file = "./output/preds/rossmann_store_sales_v1.csv", 
+            file = paste("./output/preds/rossmann_store_sales_v", file_version, ".csv", sep=""), 
             row.names = FALSE, 
             quote = FALSE)
-  
 }
+
+
+## Evaluate the RMSPE to identify the optimal params
+eval_rmspe <- function(y_hat, y) {
+  ##cat("\n Calculating the RMSPE for the predicted Sales...\n")
+  y <- expm1(getinfo(y, "label"))
+  y_hat <- expm1(y_hat)
+  return(list(metric = "rmspe", value = sqrt(mean(((y_hat - y)/y)^2))))
+}
+
