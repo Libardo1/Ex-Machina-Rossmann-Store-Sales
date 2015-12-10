@@ -88,8 +88,8 @@ cat("\n Dropping the Promo2SinceWeek and Promo2SinceYear columns, as no longer n
 train_test_store_dt[, c("Promo2SinceWeek", "Promo2SinceYear") := NULL]
 
 ## Now Fix the data types
-#cat("\n Begin: Fixing the data types of the train & test combined data set...")
-#train_test_store_dt$Store <- as.numeric(train_test_store_dt$Store)
+cat("\n Begin: Fixing the data types of the train & test combined data set...")
+train_test_store_dt$Store <- as.factor(train_test_store_dt$Store)
 #train_test_store_dt$DayOfWeek <- as.numeric(train_test_store_dt$DayOfWeek)
 #train_test_store_dt$Open <- as.numeric(train_test_store_dt$Open)
 #train_test_store_dt$Promo <- as.numeric(train_test_store_dt$Promo)
@@ -102,7 +102,7 @@ train_test_store_dt[, c("Promo2SinceWeek", "Promo2SinceYear") := NULL]
 #train_test_store_dt$Week <- as.numeric(train_test_store_dt$Week)
 #train_test_store_dt$Month <- as.numeric(train_test_store_dt$Month)
 #train_test_store_dt$Year <- as.numeric(train_test_store_dt$Year)
-#train_test_store_dt$IsPromoMonth <- as.numeric(train_test_store_dt$IsPromoMonth)
+train_test_store_dt$IsPromoMonth <- as.factor(train_test_store_dt$IsPromoMonth)
 #train_test_store_dt$Promo2Interval <- as.numeric(train_test_store_dt$Promo2Interval)
 #train_test_store_dt$CompetitionDurationMonths <- as.numeric(train_test_store_dt$CompetitionDurationMonths)
 #train_test_store_dt$Promo2DurationWeeks <- as.numeric(train_test_store_dt$Promo2DurationWeeks)
@@ -124,6 +124,13 @@ train_test_store_dt[is.na(train_test_store_dt)] <- as.integer(-1)
 ## corrplot(correlationMatrix, 
 ##          order = "hclust")
 
+# dummify the data
+#dmy <- dummyVars(" ~ .", data = train_test_store_dt[, !"source", with = FALSE])
+#train_test_store_dt_dummied <- data.frame(predict(dmy, newdata = train_test_store_dt[, !"source", with = FALSE]))
+#print(train_test_store_dt_dummied)
+#cat("\n Adding the source column to this one-hot-encoded data table...")
+#train_test_store_dt_dummied <- as.data.table(cbind(train_test_store_dt_dummied, source = train_test_store_dt[, source]))
+
 cat("\n Splitting the train and test data sets now...")
 train_store_dt <- train_test_store_dt[source == "train"]
 test_store_dt <- train_test_store_dt[source == "test"]
@@ -132,6 +139,14 @@ cat("\n Dropping the 'source' column from the Train and Test data sets...")
 train_store_dt[, source := NULL]
 train_store_dt[, Sales := Sales]
 test_store_dt[, source := NULL]
+
+
+## Trying this new approach
+cat("\n There are more stores in Training data set than there are in test data set...")
+cat("\n ... Removing those stores from the training data set that are absent in the test data set...")
+test_stores <- unique(test_store_dt$Store)
+train_store_dt <- train_store_dt[Store %in% test_stores]
+
 
 #cat("\n Converting factor variables into dummy variables...in Train data...")
 #train_store_dt_dummy <- dummyVars(" ~ .", data = train_store_dt)

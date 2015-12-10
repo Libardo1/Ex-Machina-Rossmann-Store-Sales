@@ -71,21 +71,32 @@ cat("\nConverting train and test data tables into matrix...")
 train_dmat <- sapply(train_store_dt[, setdiff(colnames(train_store_dt), "Sales"), with = FALSE], as.numeric)
 test_dmat <- sapply(test_store_dt, as.numeric)
 
+
+## Check for NA 
+colSums(is.na(train_dmat))
+colSums(is.na(test_dmat))
+
+## Since only INTEGER columns have NA values, set them -1
+train_dmat[is.na(train_dmat)] <- as.integer(-1)
+test_dmat[is.na(test_dmat)] <- as.integer(-1)
+
 ## This CV needs to run until the test-error rate begins to increase
 ## which will indicate the optimal params of the models
 cat("\n Running cross-validation now... ")
 xgboost_cv <- xgb.cv(data = train_dmat, 
                      label = log1p(train_store_dt$Sales),
+                     booster = "gbtree",
                      nfold = 10,
                      nthread = 8,
-                     eta = 0.01,
-                     nround = 10000,
-                     max.depth = 10,
+                     eta = 0.1,
+                     nround = 100000,
+                     max.depth = 6,
                      verbose = TRUE,
                      objective = "reg:linear",
                      eval_metric = eval_rmspe,
                      subsample = 0.8,
                      colsample_bytree = 0.75,
+                     min_child_weight = 3,
                      early.stop.round = 10,
                      maximize = FALSE
                      )
@@ -95,15 +106,17 @@ plot(xgboost_cv$test.rmspe.mean)
 cat("\n Now fitting the XGBoost model on the entire training data set now...")
 xgboost_fit <- xgboost(data = train_dmat, 
                        label = log1p(train_store_dt$Sales),
+                       booster = "gbtree",
                        nthread = 8,
-                       eta = 0.01,
-                       nround = 5000,
-                       max.depth = 10,
+                       eta = 0.1,
+                       nround = 2246,
+                       max.depth = 6,
                        verbose = TRUE,
                        objective = "reg:linear",
                        eval_metric = eval_rmspe,
                        subsample = 0.8,
-                       colsample_bytree = 0.75
+                       colsample_bytree = 0.75,
+                       min_child_weight = 3
                        )
 
 ##Predict using the XGBoost - NOTE the inversion applied on the predicted value
@@ -111,11 +124,15 @@ pred_dense <- expm1(predict(xgboost_fit, test_dmat))
 
 
 ## Now Write the prediction
-write_submission_file(file_version = 8, 
+write_submission_file(file_version = 11, 
                       store_id = test_store_id, 
                       predicted_sales = pred_dense)
 
 
+
+xgb.plot.tree(feature_names = colnames(train_store_dt), 
+              model = xgboost_fit
+              )
 
 
 cat("\n Plotting feature importance...")

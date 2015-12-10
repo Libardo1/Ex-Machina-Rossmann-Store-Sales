@@ -81,6 +81,11 @@ create_linreg_preds_model_v2 <- function(train_data, test_data) {
                         )
 }
 
+create_xgboost_preds_model_v1 <- function(train_data, test_data){
+
+}
+
+
 
 run_preds_with_model <- function(model_name) {
   ## Now use this to predict

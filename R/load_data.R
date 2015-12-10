@@ -25,4 +25,10 @@ store_dt <- fread(input = paste(BASE_DATA_DIR, RAW_PROJECT_DATA_DIR, "/store.csv
                   na.strings = "NA",
                   stringsAsFactors = TRUE)
 
+#cat("\n Loading the Google flu trend data set...")
+#google_flu_trends_dt <- fread(input = paste(BASE_DATA_DIR, RAW_PROJECT_DATA_DIR, "/google_flu_trend.csv", sep=""), 
+#                              sep = ",", 
+#                              header = TRUE,
+#                              na.strings = "NA",
+#                              stringsAsFactors = TRUE)
 gc()
