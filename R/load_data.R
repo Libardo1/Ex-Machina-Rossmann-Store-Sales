@@ -9,7 +9,7 @@ train_dt <- fread(input = paste(BASE_DATA_DIR, RAW_PROJECT_DATA_DIR, "/train.csv
                   sep = ",", 
                   header = TRUE,
                   na.strings = "NA",
-                  stringsAsFactors = TRUE)
+                  stringsAsFactors = FALSE)
 
 cat("\n Loading the test data set...")
 test_dt <- fread(input = paste(BASE_DATA_DIR, RAW_PROJECT_DATA_DIR, "/test.csv", sep=""), 

@@ -9,7 +9,6 @@ cat("\n Correcting the Date data type...")
 train_dt[, Date := as.Date(Date)]
 test_dt[, Date := as.Date(Date)]
 
-
 ## Check for NA in TRAIN data set
 colSums(is.na(train_dt))
 
@@ -37,7 +36,7 @@ test_store_dt <- merge(x = test_dt,
                        by = "Store")
 
 ## Remove the cases with ZERO sales; Kaggle will ignore these
-train_store_dt <- train_store_dt[Sales > 0]
+## train_store_dt <- train_store_dt[Sales > 0]
 
 
 ## Drop the columns in TRAIN & TEST not needed
@@ -58,6 +57,8 @@ cat("\n ...")
 
 ## Breakdown the DATE into Week, Month and Year
 cat("\n Breaking down the DATE into Week, Month and Year features...")
+train_test_store_dt[, DayOfMonth := as.integer(format(Date, "%d"))]
+train_test_store_dt[, DayOfYear := as.integer(format(Date, "%j"))]
 train_test_store_dt[, Week := as.integer(format(Date, "%U"))]
 train_test_store_dt[, Month := as.integer(format(Date, "%m"))]
 train_test_store_dt[, Year := as.integer(format(Date, "%Y"))]
@@ -87,9 +88,16 @@ train_test_store_dt[, Promo2DurationWeeks := ifelse(Promo2DurationWeeks < 0, -1,
 cat("\n Dropping the Promo2SinceWeek and Promo2SinceYear columns, as no longer needed... ")
 train_test_store_dt[, c("Promo2SinceWeek", "Promo2SinceYear") := NULL]
 
+
+cat("\n Start extracting some Sales trends...")
+cat("\n >>> Get average sales per store, per month, per year...")
+train_test_store_dt
+
+
+
 ## Now Fix the data types
 cat("\n Begin: Fixing the data types of the train & test combined data set...")
-train_test_store_dt$Store <- as.factor(train_test_store_dt$Store)
+#train_test_store_dt$Store <- as.factor(train_test_store_dt$Store)
 #train_test_store_dt$DayOfWeek <- as.numeric(train_test_store_dt$DayOfWeek)
 #train_test_store_dt$Open <- as.numeric(train_test_store_dt$Open)
 #train_test_store_dt$Promo <- as.numeric(train_test_store_dt$Promo)
@@ -102,7 +110,7 @@ train_test_store_dt$Store <- as.factor(train_test_store_dt$Store)
 #train_test_store_dt$Week <- as.numeric(train_test_store_dt$Week)
 #train_test_store_dt$Month <- as.numeric(train_test_store_dt$Month)
 #train_test_store_dt$Year <- as.numeric(train_test_store_dt$Year)
-train_test_store_dt$IsPromoMonth <- as.factor(train_test_store_dt$IsPromoMonth)
+#train_test_store_dt$IsPromoMonth <- as.factor(train_test_store_dt$IsPromoMonth)
 #train_test_store_dt$Promo2Interval <- as.numeric(train_test_store_dt$Promo2Interval)
 #train_test_store_dt$CompetitionDurationMonths <- as.numeric(train_test_store_dt$CompetitionDurationMonths)
 #train_test_store_dt$Promo2DurationWeeks <- as.numeric(train_test_store_dt$Promo2DurationWeeks)

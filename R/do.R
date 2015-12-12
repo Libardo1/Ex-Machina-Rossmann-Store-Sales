@@ -128,6 +128,30 @@ write_submission_file(file_version = 11,
                       store_id = test_store_id, 
                       predicted_sales = pred_dense)
 
+## >>> Read this outcome file
+cat("\n Loading the training data set...")
+pred_v11_dt <- fread(input = "./output/preds/rossmann_store_sales_v11.csv", 
+                  sep = ",", 
+                  header = TRUE,
+                  na.strings = "NA",
+                  stringsAsFactors = FALSE)
+
+
+## Check the prediction for Stores that were closed on that date
+pred_v11_dt <- merge(x = pred_v11_dt, 
+                    y = test_dt,
+                    by = "Id")
+
+
+## Set SALES to ZERO where the Store was closed. 
+pred_v11_dt[Open == 0, Sales := 0]
+## write back the prediction file - want to see if that makes any difference
+## Now Write the prediction
+write_submission_file(file_version = "11_1", 
+                      store_id = pred_v11_dt[, Id], 
+                      predicted_sales = pred_v11_dt[, Sales])
+
+
 
 
 xgb.plot.tree(feature_names = colnames(train_store_dt), 
